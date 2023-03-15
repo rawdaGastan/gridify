@@ -3,13 +3,16 @@ package deployer
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"net/url"
 	"strconv"
 	"strings"
 
 	"github.com/pkg/errors"
 	"github.com/rawdaGastan/gridify/internal/tfplugin"
 	"github.com/rs/zerolog"
+	"github.com/threefoldtech/grid3-go/workloads"
 )
 
 // Deployer struct manages project deployment
@@ -130,6 +133,51 @@ func (d *Deployer) Destroy() error {
 	}
 	d.logger.Info().Msg("Project Destroyed!")
 	return nil
+}
+
+func (d *Deployer) Get() (map[string]string, error) {
+	d.logger.Info().Msgf("getting contracts for project %s", d.projectName)
+	contracts, err := d.tfPluginClient.ListContractsOfProjectName(d.projectName)
+	if err != nil {
+		return map[string]string{}, errors.Wrapf(err, "could not load contracts for project %s", d.projectName)
+	}
+	fqdns := make(map[string]string)
+	for _, contract := range contracts.NodeContracts {
+		contractID, err := strconv.ParseUint(contract.ContractID, 0, 64)
+		if err != nil {
+			return map[string]string{}, errors.Wrapf(err, "could not parse contract %s into uint64", contract.ContractID)
+		}
+		var deploymentData workloads.DeploymentData
+		err = json.Unmarshal([]byte(contract.DeploymentData), &deploymentData)
+		if err != nil {
+			return map[string]string{}, errors.Wrapf(err, "failed to unmarshal deployment data %s", contract.DeploymentData)
+		}
+		if deploymentData.Type != "Gateway Name" {
+			continue
+		}
+		dl, err := d.tfPluginClient.GetDeployment(contract.NodeID, contractID)
+		if err != nil {
+			return map[string]string{}, err
+		}
+		if len(dl.Workloads) == 0 {
+			d.logger.Debug().Msgf("no workloads found in deployment with contract %d", contractID)
+			continue
+		}
+		gateway, err := workloads.NewGatewayNameProxyFromZosWorkload(dl.Workloads[0])
+		if err != nil {
+			return map[string]string{}, err
+		}
+		if len(gateway.Backends) == 0 {
+			d.logger.Debug().Msgf("no backends found in gateway %s", gateway.Name)
+			continue
+		}
+		u, err := url.Parse(string(gateway.Backends[0]))
+		if err != nil {
+			return map[string]string{}, errors.Wrapf(err, "failed parsing the domain %s", gateway.FQDN)
+		}
+		fqdns[u.Port()] = gateway.FQDN
+	}
+	return fqdns, nil
 }
 
 func (d *Deployer) getProjectName() (string, error) {

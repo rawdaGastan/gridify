@@ -4,10 +4,12 @@ package tfplugin
 import (
 	"context"
 
+	"github.com/pkg/errors"
 	gridDeployer "github.com/threefoldtech/grid3-go/deployer"
 	"github.com/threefoldtech/grid3-go/graphql"
 	"github.com/threefoldtech/grid3-go/workloads"
 	"github.com/threefoldtech/grid_proxy_server/pkg/types"
+	"github.com/threefoldtech/zos/pkg/gridtypes"
 )
 
 // TFPluginClientInterface interface for tfPluginClient
@@ -21,6 +23,7 @@ type TFPluginClientInterface interface {
 	CancelContract(contractID uint64) error
 	FilterNodes(filter types.NodeFilter, pagination types.Limit) (res []types.Node, totalCount int, err error)
 	GetGridNetwork() string
+	GetDeployment(nodeID uint32, contractID uint64) (gridtypes.Deployment, error)
 }
 
 // NewTFPluginClient returns new tfPluginClient given mnemonics and grid network
@@ -82,4 +85,16 @@ func (t *TFPluginClient) FilterNodes(filter types.NodeFilter, pagination types.L
 // GetGridNetwork returns the current grid network
 func (t *TFPluginClient) GetGridNetwork() string {
 	return t.tfPluginClient.Network
+}
+
+func (t *TFPluginClient) GetDeployment(nodeID uint32, contractID uint64) (gridtypes.Deployment, error) {
+	nodeClient, err := t.tfPluginClient.NcPool.GetNodeClient(t.tfPluginClient.SubstrateConn, nodeID)
+	if err != nil {
+		return gridtypes.Deployment{}, errors.Wrapf(err, "failed to get node client for node %d", nodeID)
+	}
+	dl, err := nodeClient.DeploymentGet(context.Background(), contractID)
+	if err != nil {
+		return gridtypes.Deployment{}, errors.Wrapf(err, "failed to get deployment %d from node %d", contractID, nodeID)
+	}
+	return dl, err
 }

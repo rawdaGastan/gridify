@@ -2,7 +2,6 @@
 package cmd
 
 import (
-	"context"
 	"os"
 
 	"github.com/pkg/errors"
@@ -13,13 +12,13 @@ import (
 	"github.com/rs/zerolog"
 )
 
-// Deploy handles deploy command logic
-func Deploy(ports []uint, debug bool) error {
-
+// Get handles get command logic
+func Get(debug bool) error {
 	path, err := config.GetConfigPath()
 	if err != nil {
 		return errors.Wrap(err, "failed to get configuration file")
 	}
+
 	var cfg config.Config
 	err = cfg.Load(path)
 	if err != nil {
@@ -54,12 +53,12 @@ func Deploy(ports []uint, debug bool) error {
 		return err
 	}
 
-	fqdns, err := deployer.Deploy(context.Background(), ports)
+	fqdns, err := deployer.Get()
 	if err != nil {
 		return err
 	}
 	for port, fqdn := range fqdns {
-		logger.Info().Msgf("%d: %s\n", port, fqdn)
+		logger.Info().Msgf("%s: %s", port, fqdn)
 	}
 	return nil
 }
