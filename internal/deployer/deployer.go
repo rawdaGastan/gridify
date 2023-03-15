@@ -135,6 +135,7 @@ func (d *Deployer) Destroy() error {
 	return nil
 }
 
+// Get returns deployed project domains
 func (d *Deployer) Get() (map[string]string, error) {
 	d.logger.Info().Msgf("getting contracts for project %s", d.projectName)
 	contracts, err := d.tfPluginClient.ListContractsOfProjectName(d.projectName)

@@ -87,6 +87,7 @@ func (t *TFPluginClient) GetGridNetwork() string {
 	return t.tfPluginClient.Network
 }
 
+// GetDeployment returns a deployment using node ID and it's contract ID
 func (t *TFPluginClient) GetDeployment(nodeID uint32, contractID uint64) (gridtypes.Deployment, error) {
 	nodeClient, err := t.tfPluginClient.NcPool.GetNodeClient(t.tfPluginClient.SubstrateConn, nodeID)
 	if err != nil {
