@@ -1,6 +1,7 @@
 # Gridify
 
-<a href='https://github.com/jpoles1/gopherbadger' target='_blank'>![gopherbadger-tag-do-not-edit](https://img.shields.io/badge/Go%20Coverage-92%25-brightgreen.svg?longCache=true&style=flat)</a>
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/cd6e18aac6be404ab89ec160b4b36671)](https://www.codacy.com/gh/threefoldtech/gridify/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=threefoldtech/gridify&amp;utm_campaign=Badge_Grade) <a href='https://github.com/jpoles1/gopherbadger' target='_blank'>![gopherbadger-tag-do-not-edit](https://img.shields.io/badge/Go%20Coverage-92%25-brightgreen.svg?longCache=true&style=flat)</a> [![Testing](https://github.com/threefoldtech/gridify/actions/workflows/test.yml/badge.svg?branch=development)](https://github.com/threefoldtech/gridify/actions/workflows/test.yml) [![Testing](https://github.com/threefoldtech/gridify/actions/workflows/lint.yml/badge.svg?branch=development)](https://github.com/threefoldtech/gridify/actions/workflows/lint.yml) [![Dependabot](https://badgen.net/badge/Dependabot/enabled/green?icon=dependabot)](https://dependabot.com/)
+
 
 A tool used to deploy projects on [Threefold grid](https://threefold.io/).
 
@@ -29,6 +30,12 @@ gridify deploy --ports 80,8080
 ```
 
 gridify generates a unique domain for each service.
+
+To get your domains for the deployed project, use the following:
+
+```bash
+gridify get
+```
 
 To destroy deployed project run the following command inside the project directory:
 
